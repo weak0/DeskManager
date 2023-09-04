@@ -44,9 +44,11 @@ builder.Services.AddDbContext<DeskManagerDbContext>(options =>
 });
 
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidation>();
+builder.Services.AddScoped<IValidator<CreateLocationDto>, CreateLocationValidation>();
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
 
 
 

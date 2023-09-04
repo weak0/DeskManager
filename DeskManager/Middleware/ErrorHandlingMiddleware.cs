@@ -11,7 +11,7 @@ namespace DeskManager.Middleware
             {
                 await next.Invoke(context);
             }
-            catch (RegistrationValidationException ex)
+            catch (WrongDataException ex)
             {
                 context.Response.StatusCode = 400;
                 await context.Response.WriteAsync(ex.Message);
