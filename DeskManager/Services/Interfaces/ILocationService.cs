@@ -9,4 +9,5 @@ public interface ILocationService
     Task<Location> GetLocation(int id);
     Task<int> CreateLocation(CreateLocationDto locationName);
     Task DeleteLocation(int id);
+    Task<Location> GetById(int id);
 }

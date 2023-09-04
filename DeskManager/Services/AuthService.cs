@@ -88,5 +88,10 @@ public class AuthService : IAuthService
         var tokenHandler = new JwtSecurityTokenHandler();
         return tokenHandler.WriteToken(token);
     }
+    public static bool IsAdmin(IEnumerable<Claim> claimsPrincipal)
+    {
+        var role = claimsPrincipal.Any(c => c.Type == ClaimTypes.Role && c.Value == "Admin");
+        return role;
+    }
 }
 

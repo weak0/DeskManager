@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using DeskManager;
 using DeskManager.Entities;
 using DeskManager.Middleware;
@@ -13,7 +14,7 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);;
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -49,6 +50,7 @@ builder.Services.AddScoped<IValidator<CreateLocationDto>, CreateLocationValidati
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IDeskService, DeskService>();
 
 
 

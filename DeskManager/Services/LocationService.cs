@@ -3,7 +3,6 @@ using DeskManager.Exceptions;
 using DeskManager.Models;
 using DeskManager.Services.Interfaces;
 using FluentValidation;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace DeskManager.Services;
@@ -21,7 +20,6 @@ public class LocationService : ILocationService
     public async Task<List<Location>> GetAll()
     {
         var locations = await _dbContext.Locations
-            .Include(l => l.Desks)
             .ToListAsync();
         return locations;
     }
@@ -56,12 +54,12 @@ public class LocationService : ILocationService
         await _dbContext.SaveChangesAsync();
 
     }
-    private async Task<Location> GetById(int id)
+    public async Task<Location> GetById(int id)
     {
         var location = await _dbContext.Locations
-                           .Include(l => l.Desks)
                            .FirstOrDefaultAsync(l => l.Id == id) 
                        ?? throw new NotFoundException("Location not found");
         return location;
     }
+    
 }
