@@ -26,7 +26,7 @@ public class AuthService : IAuthService
 
         if (!validationResult.IsValid)
         {
-            var errors = string.Join(", ", validationResult.Errors);
+            var errors = string.Join(Environment.NewLine, validationResult.Errors);
             throw new RegistrationValidationException($"Registration fault :{errors} ");
         }
         var user = MapUser(newUser);
