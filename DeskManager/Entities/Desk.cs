@@ -8,11 +8,9 @@ public class Desk
     
     public Location Location { get; set; }
     public int LocationId { get; set; }
-    
-    public DateTime? StartReservation { get; set; }
-    public DateTime? EndReservation { get; set; }
 
+    public List<Reservation> Reservations { get; set; }
     public bool IsAvailable { get; set; } = true;
-    public User User { get; set; }
-    public int? UserId { get; set; }
+
+    
 }

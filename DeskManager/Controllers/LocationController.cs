@@ -1,12 +1,14 @@
 ﻿using DeskManager.Entities;
 using DeskManager.Models;
 using DeskManager.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DeskManager.Controllers;
 
 [ApiController]
 [Route("locations")]
+[Authorize]
 public class LocationController : ControllerBase
 {
     private readonly ILocationService _locationService;

@@ -1,9 +1,7 @@
-﻿using System.Linq.Expressions;
+﻿using System.ComponentModel;
 using DeskManager.Entities;
 using DeskManager.Exceptions;
-using DeskManager.Models;
 using DeskManager.Services.Interfaces;
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -21,19 +19,12 @@ public class DeskService : IDeskService
     }
     public async Task<List<Desk>> GetDesks(int locationId, bool isAdmin)
     {
-        var includes = isAdmin
-            ? new Expression<Func<Desk, object>>[] { d => d.User }
-            : null;
-        return await GetAllDesksQuery( locationId, includes);
+        return await GetListDesksQuery( locationId, isAdmin);
     }
 
     public async Task<Desk> GetDesk(int deskId, bool isAdmin)
     {
-        var includes = isAdmin
-            ? new Expression<Func<Desk, object>>[] { d => d.User }
-            : null;
-        return await GetDeskQuery( deskId, includes);
-
+        return await GetDeskQuery( deskId, isAdmin);
     }
 
     public async Task<Desk> CreateDesk(int locationId)
@@ -54,7 +45,7 @@ public class DeskService : IDeskService
     public async Task<Desk> UpdateDeskLocation( int newLocationId, int deskId)
     {
         await _locationService.GetById(newLocationId);
-        var desk = await GetDeskQuery(deskId, null);
+        var desk = await GetDeskQuery(deskId, false);
         desk.LocationId = newLocationId;
         await _dbContext.SaveChangesAsync();
         return desk;
@@ -62,22 +53,32 @@ public class DeskService : IDeskService
 
     public async Task DeleteDesk(int deskId)
     {
-        var desk = await GetDeskQuery(deskId, null);
+        var desk = await GetDeskQuery(deskId, false);
         _dbContext.Desks.Remove(desk);
         await _dbContext.SaveChangesAsync();
 
     }
-    private async Task<Desk> GetDeskQuery(int deskId, Expression<Func<Desk, object>>[] includes)
+
+    public async Task MakeDeskUnavailable(int deskId)
     {
-        var baseQuery = BaseQuery(includes);
+        var desk = await GetDeskQuery(deskId, false);
+        if (desk.Reservations.Any())
+            throw new WarningException("This desk has reservations");
+        desk.IsAvailable = false;
+        await _dbContext.SaveChangesAsync();
+
+    }
+    public async Task<Desk> GetDeskQuery(int deskId, bool withUsers)
+    {
+        var baseQuery = BaseQuery(withUsers);
             var desk = await baseQuery.FirstOrDefaultAsync(d => d.Id == deskId) 
                        ?? throw new NotFoundException("Desk not found");
         return desk;
     }
 
-    private async Task<List<Desk>> GetAllDesksQuery(int locationId, Expression<Func<Desk, object>>[] includes)
+    private async Task<List<Desk>> GetListDesksQuery(int locationId, bool withUsers)
     {
-        var baseQuery = BaseQuery(includes);
+        var baseQuery = BaseQuery(withUsers);
         var desks = await baseQuery
             .Where(d => d.LocationId == locationId)
             .ToListAsync();
@@ -88,15 +89,22 @@ public class DeskService : IDeskService
         return desks;
     }
 
-    private IQueryable<Desk> BaseQuery(Expression<Func<Desk, object>>[] includes)
+
+    private IQueryable<Desk> BaseQuery(bool withUsers)
     {
         var baseQuery = _dbContext.Desks.AsQueryable();
-        if (includes != null)
+
+        if (withUsers)
         {
-            baseQuery = includes
-                .Aggregate(baseQuery, (current, include) => current.Include(include));
+            baseQuery = baseQuery.Include(d => d.Reservations)
+                .ThenInclude(r => r.User);
+        }
+        else
+        {
+            baseQuery = baseQuery.Include(d => d.Reservations);
         }
 
         return baseQuery;
     }
+
 }
