@@ -32,6 +32,7 @@ public class LocationController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> CreateLocation([FromBody] CreateLocationDto locationName)
     {
         var locationId = await _locationService.CreateLocation(locationName);
@@ -39,6 +40,7 @@ public class LocationController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> DeleteLocation([FromRoute] int id)
     {
         await _locationService.DeleteLocation(id);

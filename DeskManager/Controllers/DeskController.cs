@@ -34,6 +34,7 @@ public class DeskController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Desk>> CreateDesk([FromRoute] int locationId)
     {
         var desk = await _deskService.CreateDesk(locationId);
@@ -41,6 +42,7 @@ public class DeskController : ControllerBase
     }
 
     [HttpPut("{deskId:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult<Desk>> UpdateDesk([FromRoute] int locationId, [FromRoute] int deskId)
     {
         var desk = await _deskService.UpdateDeskLocation(locationId, deskId);
@@ -48,6 +50,7 @@ public class DeskController : ControllerBase
     }
 
     [HttpDelete("/desks/{deskId:int}")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> DeleteDesk([FromRoute] int deskId)
     {
         await _deskService.DeleteDesk(deskId);
@@ -55,6 +58,7 @@ public class DeskController : ControllerBase
     }
 
     [HttpPatch("/desks/{deskId:int}/unavailable")]
+    [Authorize(Roles = "Admin")]
     public async Task<ActionResult> ChangeDeskAvailable([FromRoute] int deskId)
     {
         await _deskService.MakeDeskUnavailable(deskId);
