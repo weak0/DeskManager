@@ -48,7 +48,7 @@ builder.Services.AddDbContext<DeskManagerDbContext>(options =>
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IValidator<CreateUserDto>, CreateUserValidation>();
 builder.Services.AddScoped<IValidator<CreateLocationDto>, CreateLocationValidation>();
-builder.Services.AddScoped<IValidator<ReservationDto>, ReservationValidation>();
+builder.Services.AddScoped<IValidator<CreateReservationDto>, ReservationValidation>();
 builder.Services.AddScoped<ErrorHandlingMiddleware>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILocationService, LocationService>();

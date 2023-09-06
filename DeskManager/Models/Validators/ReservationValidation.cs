@@ -2,7 +2,7 @@
 
 namespace DeskManager.Models.Validators;
 
-public class ReservationValidation : AbstractValidator<ReservationDto>
+public class ReservationValidation : AbstractValidator<CreateReservationDto>
 {
     public ReservationValidation()
     {

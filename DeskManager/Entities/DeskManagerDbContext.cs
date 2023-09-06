@@ -22,5 +22,6 @@ public class DeskManagerDbContext : DbContext
             .HasData(
                 new Role() { Id=1 , RoleName = "Admin" }, 
                 new Role() { Id=2 , RoleName = "User" });
+        
     }
 }

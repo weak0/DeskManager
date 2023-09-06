@@ -1,6 +1,9 @@
 ﻿using System.ComponentModel;
 using DeskManager.Entities;
 using DeskManager.Exceptions;
+using DeskManager.Models;
+using DeskManager.Models.Mappers;
+using DeskManager.Models.Validators;
 using DeskManager.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,17 +20,19 @@ public class DeskService : IDeskService
         _dbContext = dbContext;
         _locationService = locationService;
     }
-    public async Task<List<Desk>> GetDesks(int locationId, bool isAdmin)
+    public async Task<List<GetDeskDto>> GetDesks(int locationId, bool isAdmin)
     {
-        return await GetListDesksQuery( locationId, isAdmin);
+        var desks = await GetListDesksQuery( locationId, isAdmin);
+        return desks.Select(DeskMapper.DeskToGetDeskDto).ToList();
     }
 
-    public async Task<Desk> GetDesk(int deskId, bool isAdmin)
+    public async Task<GetDeskDto> GetDesk(int deskId, bool isAdmin)
     {
-        return await GetDeskQuery( deskId, isAdmin);
+        var desk = await GetDeskQuery( deskId, isAdmin);
+        return DeskMapper.DeskToGetDeskDto(desk);
     }
 
-    public async Task<Desk> CreateDesk(int locationId)
+    public async Task<ModifyDeskDto> CreateDesk(int locationId)
     {
         await _locationService.GetById(locationId);
 
@@ -38,17 +43,17 @@ public class DeskService : IDeskService
 
         await _dbContext.Desks.AddAsync(desk);
         await _dbContext.SaveChangesAsync();
-        return desk;
+        return DeskMapper.DeskToModifyDeskDto(desk);
 
     }
 
-    public async Task<Desk> UpdateDeskLocation( int newLocationId, int deskId)
+    public async Task<ModifyDeskDto> UpdateDeskLocation( int newLocationId, int deskId)
     {
         await _locationService.GetById(newLocationId);
         var desk = await GetDeskQuery(deskId, false);
         desk.LocationId = newLocationId;
         await _dbContext.SaveChangesAsync();
-        return desk;
+        return DeskMapper.DeskToModifyDeskDto(desk);
     }
 
     public async Task DeleteDesk(int deskId)
@@ -59,13 +64,14 @@ public class DeskService : IDeskService
 
     }
 
-    public async Task MakeDeskUnavailable(int deskId)
+    public async Task<ModifyDeskDto> MakeDeskUnavailable(int deskId)
     {
         var desk = await GetDeskQuery(deskId, false);
         if (desk.Reservations.Any())
             throw new WarningException("This desk has reservations");
         desk.IsAvailable = false;
         await _dbContext.SaveChangesAsync();
+        return DeskMapper.DeskToModifyDeskDto(desk);
 
     }
     public async Task<Desk> GetDeskQuery(int deskId, bool withUsers)
@@ -94,6 +100,7 @@ public class DeskService : IDeskService
     {
         var baseQuery = _dbContext.Desks.AsQueryable();
 
+        baseQuery = baseQuery.Include(d => d.Location);
         if (withUsers)
         {
             baseQuery = baseQuery.Include(d => d.Reservations)

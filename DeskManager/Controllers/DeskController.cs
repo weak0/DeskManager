@@ -1,4 +1,4 @@
-﻿using DeskManager.Entities;
+﻿using DeskManager.Models;
 using DeskManager.Services;
 using DeskManager.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DeskManager.Controllers;
 
 [ApiController]
-[Route("/locations/{locationId:int}/desks")]
+[Route("/desks")]
 [Authorize]
 public class DeskController : ControllerBase
 {
@@ -17,8 +17,8 @@ public class DeskController : ControllerBase
     {
         _deskService = deskService;
     }
-    [HttpGet]
-    public async Task<ActionResult<Desk>> GetDesks([FromRoute] int locationId)
+    [HttpGet("/desks/locations/{locationId:int}")]
+    public async Task<ActionResult<List<GetDeskDto>>> GetDesks([FromRoute] int locationId)
     {
         var isAdmin = AuthService.IsAdmin(User.Claims);
         var desks =await  _deskService.GetDesks(locationId, isAdmin);
@@ -26,24 +26,24 @@ public class DeskController : ControllerBase
     }
 
     [HttpGet("/desks/{deskId:int}")]
-    public async Task<ActionResult<Desk>> GetDesk([FromRoute] int deskId)
+    public async Task<ActionResult<GetDeskDto>> GetDesk([FromRoute] int deskId)
     {
         var isAdmin = AuthService.IsAdmin(User.Claims);
         var desk = await _deskService.GetDesk(deskId, isAdmin);
         return Ok(desk);
     }
 
-    [HttpPost]
+    [HttpPost("/desks/locations/{locationId:int}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Desk>> CreateDesk([FromRoute] int locationId)
+    public async Task<ActionResult<ModifyDeskDto>> CreateDesk([FromRoute] int locationId)
     {
         var desk = await _deskService.CreateDesk(locationId);
         return Created($"/{locationId}/desks/{desk.Id}", desk);
     }
 
-    [HttpPut("{deskId:int}")]
+    [HttpPut("{deskId:int}/locations/{locationId:int}")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<Desk>> UpdateDesk([FromRoute] int locationId, [FromRoute] int deskId)
+    public async Task<ActionResult<ModifyDeskDto>> UpdateDesk([FromRoute] int locationId, [FromRoute] int deskId)
     {
         var desk = await _deskService.UpdateDeskLocation(locationId, deskId);
         return Ok(desk);
@@ -59,10 +59,10 @@ public class DeskController : ControllerBase
 
     [HttpPatch("/desks/{deskId:int}/unavailable")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult> ChangeDeskAvailable([FromRoute] int deskId)
+    public async Task<ActionResult<ModifyDeskDto>> ChangeDeskAvailable([FromRoute] int deskId)
     {
-        await _deskService.MakeDeskUnavailable(deskId);
-        return NoContent();
+        var desk = await _deskService.MakeDeskUnavailable(deskId);
+        return Ok(desk);
     }
 
 }

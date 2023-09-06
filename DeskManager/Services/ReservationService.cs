@@ -4,6 +4,7 @@ using System.Linq.Expressions;
 using DeskManager.Entities;
 using DeskManager.Exceptions;
 using DeskManager.Models;
+using DeskManager.Models.Mappers;
 using DeskManager.Services.Interfaces;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -14,42 +15,44 @@ public class ReservationService : IReservationService
 {
     private readonly DeskManagerDbContext _dbContext;
   
-    private readonly IValidator<ReservationDto> _reservationValidator;
+    private readonly IValidator<CreateReservationDto> _reservationValidator;
     private readonly IDeskService _deskService;
 
-    public ReservationService(DeskManagerDbContext dbContext, IValidator<ReservationDto> reservationValidator, IDeskService deskService)
+    public ReservationService(DeskManagerDbContext dbContext, IValidator<CreateReservationDto> reservationValidator, IDeskService deskService)
     {
         _dbContext = dbContext;
         _reservationValidator = reservationValidator;
         _deskService = deskService;
     }
 
-    public async Task<Desk> MakeReservation(int deskId, ReservationDto reservation)
+    public async Task<ReservationDto> ShortReservation(int deskId, CreateShortReservationDto reservation)
+    {
+        var mapToReservationDto = ReservationMapper.ShortReservationToCreateReservationDto(reservation);
+        var desk  = await MakeReservation(deskId, mapToReservationDto);
+        return desk;
+    }
+
+    public async Task<ReservationDto> MakeReservation(int deskId, CreateReservationDto createReservation)
     {
         var desk = await _deskService.GetDeskQuery(deskId, false);
-        IsReservationOverlapping(desk, reservation);
+        IsReservationOverlapping(desk, createReservation);
         
-        var validationResult = await _reservationValidator.ValidateAsync(reservation);
+        var validationResult = await _reservationValidator.ValidateAsync(createReservation);
         if (!validationResult.IsValid)
         {
             var errors = string.Join(Environment.NewLine, validationResult.Errors);
             throw new WrongDataException($"Registration fault :{errors} ");
         }
 
-        var newReservation = new Reservation()
-        {
-            StartDate = reservation.StartDate,
-            EndDate = reservation.EndDate,
-            UserId = reservation.UserId,
-            DeskId = deskId,
-        };
+        var newReservation = ReservationMapper.CreateReservationDtoToReservation(createReservation);
+        newReservation.DeskId = desk.Id;
         _dbContext.Reservations.Add(newReservation);
         await _dbContext.SaveChangesAsync();
-        return desk;
+        return ReservationMapper.ReservationToReservationDto(newReservation);
 
     }
 
-    public async Task<Desk> CancelReservation(int deskId, int reservationId)
+    public async Task CancelReservation(int deskId, int reservationId)
     {
         var desk = await _deskService.GetDeskQuery(deskId, true);
         
@@ -61,10 +64,9 @@ public class ReservationService : IReservationService
 
         _dbContext.Reservations.Remove(userPreviousReservation);
         await _dbContext.SaveChangesAsync();
-        return desk;
     }
 
-    public static void IsReservationOverlapping(Desk desk, ReservationDto dto)
+    public static void IsReservationOverlapping(Desk desk, CreateReservationDto dto)
     {
         var overlappingReservations = desk.Reservations
             .Where(r =>

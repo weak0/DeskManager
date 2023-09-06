@@ -9,6 +9,9 @@ public class CreateLocationValidation : AbstractValidator<CreateLocationDto>
     public CreateLocationValidation(DeskManagerDbContext dbContext)
     {
         RuleFor(x => x.Name).NotEmpty();
+        RuleFor(x => x.Room).NotEmpty();
+        RuleFor(x => x.City).NotEmpty();
+        RuleFor(x => x.Street).NotEmpty();
         RuleFor(x => x.Name).CustomAsync(async (value, context, cancellationToken) =>
         {
             if (await dbContext.Locations.AnyAsync(x => x.Name == value, cancellationToken))
@@ -16,6 +19,7 @@ public class CreateLocationValidation : AbstractValidator<CreateLocationDto>
                 context.AddFailure("Name","That location name is taken");
             }
         });
+        
 
     }
 }

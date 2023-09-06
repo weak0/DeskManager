@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DeskManager.Controllers;
 
 [ApiController]
-[Route("desks/{deskId:int}/reservation")]
+[Route("/reservation/{deskId:int}")]
 [Authorize]
 public class ReservationController : ControllerBase
 {
@@ -20,17 +20,24 @@ public class ReservationController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Desk>> MakeReservation([FromRoute] int deskId, [FromBody] ReservationDto dto)
+    public async Task<ActionResult<ReservationDto>> MakeReservation([FromRoute] int deskId, [FromBody] CreateReservationDto dto)
     {
         var desk = await _reservationService.MakeReservation(deskId, dto);
         return Ok(desk);
     }
 
+    [HttpPost("oneDay")]
+    public async Task<ActionResult<ReservationDto>> OneDayReservation([FromRoute] int deskId, [FromBody] CreateShortReservationDto dto)
+    {
+        var desk = await _reservationService.ShortReservation(deskId, dto);
+        return Ok(desk);
+    }
+
     [HttpDelete("{reservationId:int}")]
-    public async Task<ActionResult<Desk>> CancelReservation([FromRoute] int deskId, [FromRoute] int reservationId)
+    public async Task<ActionResult> CancelReservation([FromRoute] int deskId, [FromRoute] int reservationId)
     {
         var userId = int.Parse(User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value); 
-        var desk = await _reservationService.CancelReservation(deskId, reservationId);
+        await _reservationService.CancelReservation(deskId, reservationId);
         return NoContent();
     }
     

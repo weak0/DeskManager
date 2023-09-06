@@ -5,6 +5,8 @@ namespace DeskManager.Services.Interfaces;
 
 public interface IReservationService
 {
-        Task<Desk> MakeReservation(int deskId, ReservationDto reservation); 
-        Task<Desk> CancelReservation(int deskId, int reservationId);
+        Task<ReservationDto> ShortReservation(int deskId, CreateShortReservationDto reservation);
+        Task<ReservationDto> MakeReservation(int deskId, CreateReservationDto createReservation); 
+        Task CancelReservation(int deskId, int reservationId);
+        
 }
