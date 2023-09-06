@@ -13,6 +13,7 @@ public class ReservationValidation : AbstractValidator<ReservationDto>
         RuleFor(x => x.EndDate)
             .NotEmpty()
             .Must((model, enDate) => IsWithinOneWeek(model.StartDate, enDate))
+            .Must((model, enDate) => EndIsLaterThanStart(model.StartDate, enDate))
             .WithMessage("The reservation must be one week or less");
     }
 
@@ -20,5 +21,11 @@ public class ReservationValidation : AbstractValidator<ReservationDto>
     {
         var reservationTime = endDate - startDate;
         return reservationTime.TotalDays <= 7;
+    }
+
+    private bool EndIsLaterThanStart(DateTime startDate, DateTime endDate)
+    {
+        var reservationTime = endDate - startDate;
+        return reservationTime.TotalDays > 0;
     }
 }

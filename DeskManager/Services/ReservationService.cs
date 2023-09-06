@@ -64,7 +64,7 @@ public class ReservationService : IReservationService
         return desk;
     }
 
-    private static void IsReservationOverlapping(Desk desk, ReservationDto dto)
+    public static void IsReservationOverlapping(Desk desk, ReservationDto dto)
     {
         var overlappingReservations = desk.Reservations
             .Where(r =>
