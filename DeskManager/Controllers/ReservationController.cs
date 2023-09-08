@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DeskManager.Controllers;
 
 [ApiController]
-[Route("/reservation/{deskId:int}")]
+[Route("/reservations/{deskId:int}")]
 [Authorize]
 public class ReservationController : ControllerBase
 {
@@ -33,12 +33,18 @@ public class ReservationController : ControllerBase
         return Ok(desk);
     }
 
-    [HttpDelete("{reservationId:int}")]
-    public async Task<ActionResult> CancelReservation([FromRoute] int deskId, [FromRoute] int reservationId)
+    [HttpDelete("/reservations/{reservationId:int}")]
+    public async Task<ActionResult> CancelReservation([FromRoute] int reservationId)
     {
         var userId = int.Parse(User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value); 
-        await _reservationService.CancelReservation(deskId, reservationId);
+        await _reservationService.CancelReservation(reservationId);
         return NoContent();
     }
-    
+
+    [HttpGet("/reservations/{userId:int}")]
+    public async Task<ActionResult<List<ReservationDto>>> GetReservationsForUser([FromRoute] int userId)
+    {
+        var reservationList = await _reservationService.GetReservationsForUser(userId);
+        return Ok(reservationList);
+    }
 }

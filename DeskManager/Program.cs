@@ -54,6 +54,20 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 builder.Services.AddScoped<IDeskService, DeskService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
+builder.Services.AddScoped<Seeder>();
+
+// CORS
+
+builder.Services.AddCors( option =>
+{
+    option.AddPolicy("FrontEndClient", cfg =>
+    {
+        cfg.AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowAnyOrigin();
+    });
+});
+
 
 
 
@@ -65,6 +79,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+using (var scope =app.Services.CreateScope())
+{
+    var seeder = scope.ServiceProvider.GetService<Seeder>();
+    seeder.Seed();
+}
+
+app.UseCors("FrontEndClient");
 app.UseMiddleware<ErrorHandlingMiddleware>();
 
 app.UseHttpsRedirection();

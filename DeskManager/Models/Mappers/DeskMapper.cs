@@ -9,6 +9,7 @@ public static class DeskMapper
     {
           var reservations = desk.Reservations.Select(r => new DeskReservationDto()
             {
+                Id = r.Id,
                 StartDate = r.StartDate,
                 EndDate = r.EndDate,
                 UserEmail = r.User?.Email 

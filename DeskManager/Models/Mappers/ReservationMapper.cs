@@ -19,6 +19,7 @@ public static class ReservationMapper
     {
         var result = new ReservationDto()
         {
+            Id = reservation.Id,
             DeskId = reservation.DeskId,
             StartDate = reservation.StartDate,
             EndDate = reservation.EndDate,

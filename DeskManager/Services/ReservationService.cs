@@ -35,6 +35,9 @@ public class ReservationService : IReservationService
     public async Task<ReservationDto> MakeReservation(int deskId, CreateReservationDto createReservation)
     {
         var desk = await _deskService.GetDeskQuery(deskId, false);
+        if (!desk.IsAvailable)
+            throw new WrongDataException("this desk is unavailable");
+        
         IsReservationOverlapping(desk, createReservation);
         
         var validationResult = await _reservationValidator.ValidateAsync(createReservation);
@@ -52,11 +55,9 @@ public class ReservationService : IReservationService
 
     }
 
-    public async Task CancelReservation(int deskId, int reservationId)
+    public async Task CancelReservation( int reservationId)
     {
-        var desk = await _deskService.GetDeskQuery(deskId, true);
-        
-        var userPreviousReservation = desk.Reservations.FirstOrDefault(r => r.Id == reservationId) 
+        var userPreviousReservation = _dbContext.Reservations.FirstOrDefault(r => r.Id == reservationId) 
                                       ?? throw new WrongDataException("This desk dont have yours reservation");
         
         if (userPreviousReservation.StartDate.AddDays(-1) < DateTime.Now)
@@ -64,6 +65,12 @@ public class ReservationService : IReservationService
 
         _dbContext.Reservations.Remove(userPreviousReservation);
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<List<ReservationDto>> GetReservationsForUser(int userId)
+    {
+        var reservations = await _dbContext.Reservations.Where(r => r.UserId == userId).ToListAsync();
+        return reservations.Select(ReservationMapper.ReservationToReservationDto).ToList();
     }
 
     public static void IsReservationOverlapping(Desk desk, CreateReservationDto dto)
